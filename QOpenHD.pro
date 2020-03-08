@@ -298,8 +298,9 @@ AndroidBuild {
     CONFIG += EnableMainVideo
     CONFIG += EnablePiP
     CONFIG += EnableLink
-    CONFIG += EnableGStreamer
+    CONFIG += EnableVideoRender
     CONFIG += EnableCharts
+
     EnableGStreamer {
         OTHER_FILES += \
             $$PWD/android/src/org/openhd/OpenHDActivity.java
@@ -309,7 +310,23 @@ AndroidBuild {
         DEFINES += HAVE_QT_ANDROID
     }
 
+    EnableVideoRender {
+        LIBS += -lmediandk
+        LIBS += -landroid
+        QT += multimedia
 
+        HEADERS += \
+            inc/openhdandroidrender.h \
+            inc/openhdandroidvideo.h
+
+        SOURCES += \
+            src/openhdandroidrender.cpp \
+            src/openhdandroidvideo.cpp
+
+        OTHER_FILES += \
+            $$PWD/android/src/org/openhd/OpenHDActivity.java \
+            $$PWD/android/src/org/openhd/SurfaceTextureListener.java
+    }
     QT += androidextras
 }
 

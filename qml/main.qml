@@ -178,10 +178,13 @@ ApplicationWindow {
 
     Loader {
         anchors.fill: parent
-        z: 1.1
+        z: 1.0
         source: {
             if (EnableGStreamer && EnableMainVideo) {
                 return "MainVideoGStreamer.qml";
+            }
+            if (IsAndroid && EnableVideoRender && EnableMainVideo) {
+                return "MainVideoAndroid.qml";
             }
             if (IsRaspPi && EnableVideoRender && EnableMainVideo) {
                 return "MainVideoRender.qml";

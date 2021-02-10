@@ -22,6 +22,8 @@
 
 #include "localmessage.h"
 
+#include "adsb.h"
+
 static MavlinkTelemetry* _instance = nullptr;
 
 MavlinkTelemetry* MavlinkTelemetry::instance() {
@@ -531,6 +533,14 @@ void MavlinkTelemetry::onProcessMavlinkMessage(mavlink_message_t msg) {
             mavlink_msg_esc_telemetry_1_to_4_decode(&msg, &esc_telemetry);
 
             OpenHD::instance()->set_esc_temp((int)esc_telemetry.temperature[0]);
+            break;
+        }
+        case MAVLINK_MSG_ID_ADSB_VEHICLE: {
+            // Adsb::instance()->
+
+            // mavlink_adsb_vehicle_t adsb_vehicle;
+            // mavlink_msg_adsb_vehicle_decode(&msg, &adsb_vehicle);
+
             break;
         }
         default: {

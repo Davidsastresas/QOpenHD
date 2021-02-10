@@ -87,7 +87,10 @@ SOURCES += \
     src/statuslogmodel.cpp \
     src/statusmicroservice.cpp \
     src/util.cpp \
-    src/vectortelemetry.cpp
+    src/vectortelemetry.cpp \
+    src/ADSBVehicleManager.cpp \
+    src/ADSBVehicle.cpp \
+    src/QmlObjectListModel.cpp
 
 RESOURCES += qml/qml.qrc
 
@@ -124,7 +127,10 @@ HEADERS += \
     inc/statusmicroservice.h \
     inc/util.h \
     inc/vectortelemetry.h \
-    inc/wifibroadcast.h
+    inc/wifibroadcast.h \
+    inc/ADSBVehicleManager.h \
+    inc/ADSBVehicle.h \
+    inc/QmlObjectListModel.h
 
 DISTFILES += \
     android/AndroidManifest.xml \

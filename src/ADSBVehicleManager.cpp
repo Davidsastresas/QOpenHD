@@ -124,9 +124,6 @@ void ADSBapi::mapBoundsChanged(QGeoCoordinate center_coord) {
     // qreal adsb_distance_limit = _settings.value("adsb_distance_limit").toInt();
     qreal adsb_distance_limit = 1000000;
 
-    center_lat= center_coord.latitude();
-    center_lon= center_coord.longitude();
-
     QGeoCoordinate qgeo_upper_left;
     QGeoCoordinate qgeo_lower_right;
 

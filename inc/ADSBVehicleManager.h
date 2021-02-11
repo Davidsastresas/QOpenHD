@@ -20,7 +20,8 @@
 #include <QGeoCoordinate>
 #include <QSettings>
 
-
+// This is a base clase for inheriting the links for 
+// SDR and Opensky network apis
 class ADSBapi : public QThread
 {
     Q_OBJECT
@@ -54,21 +55,20 @@ protected:
     QString upperl_lon;
     QString lowerr_lat;
     QString lowerr_lon;
-    double center_lat;
-    double center_lon;
     
     // timer for requests
-    int timer_interval = 1000;
+    int timer_interval;
     QTimer *timer;
 
     QSettings _settings;
 };
 
+// This class gets the info from Openskynetwork api
 class ADSBInternet: public ADSBapi {
     Q_OBJECT
 
 public:
-    ADSBInternet() {}
+    ADSBInternet() { timer_interval = 1000; }
     ~ADSBInternet() {}
 
 private slots:

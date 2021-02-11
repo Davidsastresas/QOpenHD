@@ -73,8 +73,10 @@ public:
     static ADSBVehicleManager* instance();
 
     Q_PROPERTY(QmlObjectListModel* adsbVehicles READ adsbVehicles CONSTANT)
+    Q_PROPERTY(QGeoCoordinate apiMapCenter READ apiMapCenter MEMBER _api_center_coord NOTIFY mapCenterChanged)
 
     QmlObjectListModel* adsbVehicles(void) { return &_adsbVehicles; }
+    QGeoCoordinate apiMapCenter(void) { return _api_center_coord; }
 
     // called from qml when the map has moved
     Q_INVOKABLE void newMapCenter(QGeoCoordinate center_coord);
@@ -99,5 +101,5 @@ private:
     ADSBInternet*                   _internetLink = nullptr;
     QString                         _groundAddress;
     QSettings                       _settings;
-
+    QGeoCoordinate                  _api_center_coord;
 };

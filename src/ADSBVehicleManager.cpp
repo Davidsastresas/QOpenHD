@@ -50,6 +50,7 @@ void ADSBVehicleManager::onStarted()
 
 // called from qml when the map is moved
 void ADSBVehicleManager::newMapCenter(QGeoCoordinate center_coord) {
+    _api_center_coord = center_coord;
     emit mapCenterChanged(center_coord);
 }
 
@@ -59,7 +60,7 @@ void ADSBVehicleManager::_cleanupStaleVehicles()
     for (int i=_adsbVehicles.count()-1; i>=0; i--) {
         ADSBVehicle* adsbVehicle = _adsbVehicles.value<ADSBVehicle*>(i);
         if (adsbVehicle->expired()) {
-            qDebug() << "Expired" << QStringLiteral("%1").arg(adsbVehicle->icaoAddress(), 0, 16);
+            // qDebug() << "Expired" << QStringLiteral("%1").arg(adsbVehicle->icaoAddress(), 0, 16);
             _adsbVehicles.removeAt(i);
             _adsbICAOMap.remove(adsbVehicle->icaoAddress());
             adsbVehicle->deleteLater();
@@ -214,7 +215,7 @@ void ADSBInternet::processReply(QNetworkReply *reply) {
             // qDebug() << "lat=" << innerarray[6].toDouble();
             // qDebug() << "lon=" << innerarray[5].toDouble();
             // qDebug() << "alt=" << innerarray[7].toDouble();
-            qDebug() << "velocity=" << innerarray[9].toDouble();
+            // qDebug() << "velocity=" << innerarray[9].toDouble();
             // qDebug() << "track=" << innerarray[10].toDouble();
             // qDebug() << "vertical=" << innerarray[11].toDouble();
             // qDebug() << "distance=" << distance;

@@ -29,8 +29,8 @@ ADSBVehicleManager::ADSBVehicleManager(QObject *parent) : QObject(parent)
 ADSBVehicleManager::~ADSBVehicleManager() 
 {
     // manually stop the threads
-    _internetLink->quit();
-    _internetLink->wait();
+    _apiLink->quit();
+    _apiLink->wait();
 }
 
 void ADSBVehicleManager::onStarted()
@@ -43,9 +43,9 @@ void ADSBVehicleManager::onStarted()
     _adsbVehicleCleanupTimer.setSingleShot(false);
     _adsbVehicleCleanupTimer.start(1000);
 
-    _internetLink = new ADSBapi();
-    connect(_internetLink, &ADSBapi::adsbVehicleUpdate, this, &ADSBVehicleManager::adsbVehicleUpdate, Qt::QueuedConnection);
-    connect(this, &ADSBVehicleManager::mapCenterChanged, _internetLink, &ADSBapi::mapBoundsChanged, Qt::QueuedConnection);
+    _apiLink = new ADSBapi();
+    connect(_apiLink, &ADSBapi::adsbVehicleUpdate, this, &ADSBVehicleManager::adsbVehicleUpdate, Qt::QueuedConnection);
+    connect(this, &ADSBVehicleManager::mapCenterChanged, _apiLink, &ADSBapi::mapBoundsChanged, Qt::QueuedConnection);
 }
 
 // called from qml when the map is moved

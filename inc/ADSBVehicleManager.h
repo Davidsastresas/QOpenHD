@@ -98,7 +98,7 @@ private:
     QmlObjectListModel              _adsbVehicles;
     QMap<uint32_t, ADSBVehicle*>    _adsbICAOMap;
     QTimer                          _adsbVehicleCleanupTimer;
-    ADSBapi*                        _internetLink = nullptr;
+    ADSBapi*                        _apiLink = nullptr;
     QString                         _groundAddress;
     QSettings                       _settings;
     QGeoCoordinate                  _api_center_coord;

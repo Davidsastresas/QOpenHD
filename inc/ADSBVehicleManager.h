@@ -21,13 +21,13 @@
 #include <QSettings>
 
 
-class ADSBInternet : public QThread
+class ADSBapi : public QThread
 {
     Q_OBJECT
 
 public:
-    ADSBInternet();
-    ~ADSBInternet();
+    ADSBapi();
+    ~ADSBapi();
 
 signals:
     void adsbVehicleUpdate(const ADSBVehicle::VehicleInfo_t vehicleInfo);
@@ -82,7 +82,7 @@ public:
     Q_INVOKABLE void newMapCenter(QGeoCoordinate center_coord);
 
 signals:
-    // sent to ADSBInternet to make requests based into this
+    // sent to ADSBapi to make requests based into this
     void mapCenterChanged(QGeoCoordinate center_coord);
 
 public slots:
@@ -98,7 +98,7 @@ private:
     QmlObjectListModel              _adsbVehicles;
     QMap<uint32_t, ADSBVehicle*>    _adsbICAOMap;
     QTimer                          _adsbVehicleCleanupTimer;
-    ADSBInternet*                   _internetLink = nullptr;
+    ADSBapi*                        _internetLink = nullptr;
     QString                         _groundAddress;
     QSettings                       _settings;
     QGeoCoordinate                  _api_center_coord;

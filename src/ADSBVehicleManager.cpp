@@ -43,9 +43,9 @@ void ADSBVehicleManager::onStarted()
     _adsbVehicleCleanupTimer.setSingleShot(false);
     _adsbVehicleCleanupTimer.start(1000);
 
-    _internetLink = new ADSBInternet();
-    connect(_internetLink, &ADSBInternet::adsbVehicleUpdate, this, &ADSBVehicleManager::adsbVehicleUpdate, Qt::QueuedConnection);
-    connect(this, &ADSBVehicleManager::mapCenterChanged, _internetLink, &ADSBInternet::mapBoundsChanged, Qt::QueuedConnection);
+    _internetLink = new ADSBapi();
+    connect(_internetLink, &ADSBapi::adsbVehicleUpdate, this, &ADSBVehicleManager::adsbVehicleUpdate, Qt::QueuedConnection);
+    connect(this, &ADSBVehicleManager::mapCenterChanged, _internetLink, &ADSBapi::mapBoundsChanged, Qt::QueuedConnection);
 }
 
 // called from qml when the map is moved
@@ -83,27 +83,27 @@ void ADSBVehicleManager::adsbVehicleUpdate(const ADSBVehicle::VehicleInfo_t vehi
     }
 }
 
-ADSBInternet::ADSBInternet()
+ADSBapi::ADSBapi()
     : QThread()
 {
     moveToThread(this);
     start();
 }
 
-ADSBInternet::~ADSBInternet(void)
+ADSBapi::~ADSBapi(void)
 {
     quit();
     wait();
 }
 
-void ADSBInternet::run(void)
+void ADSBapi::run(void)
 {
     init();
     exec();
 }
 
-void ADSBInternet::init(void) {
-    // qDebug() << "------------------AdsbInternet::init()";
+void ADSBapi::init(void) {
+    // qDebug() << "------------------Adsbapi::init()";
 
     QNetworkAccessManager * manager = new QNetworkAccessManager(this);
 
@@ -112,14 +112,14 @@ void ADSBInternet::init(void) {
     connect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(processReply(QNetworkReply*))) ;
 
     timer = new QTimer(this);
-    connect(timer, &QTimer::timeout, this, &ADSBInternet::requestData);
+    connect(timer, &QTimer::timeout, this, &ADSBapi::requestData);
 
     // How frequently data is requested
     timer->start(timer_interval);
     mapBoundsChanged(QGeoCoordinate(40.48205, -3.35996)); // this shouldn't be necesary
 }
 
-void ADSBInternet::requestData(void) {
+void ADSBapi::requestData(void) {
     adsb_url= "https://opensky-network.org/api/states/all?lamin="+lowerr_lat+"&lomin="+upperl_lon+"&lamax="+upperl_lat+"&lomax="+lowerr_lon;
 
     QNetworkRequest request;
@@ -131,7 +131,7 @@ void ADSBInternet::requestData(void) {
     m_manager->get(request);
 }
 
-void ADSBInternet::processReply(QNetworkReply *reply) {
+void ADSBapi::processReply(QNetworkReply *reply) {
     bool icaoOk;
     uint32_t icaoAddress;
 
@@ -237,7 +237,7 @@ void ADSBInternet::processReply(QNetworkReply *reply) {
 }
 
 // this is duplicated
-void ADSBInternet::mapBoundsChanged(QGeoCoordinate center_coord) {
+void ADSBapi::mapBoundsChanged(QGeoCoordinate center_coord) {
     // qreal adsb_distance_limit = _settings.value("adsb_distance_limit").toInt();
     qreal adsb_distance_limit = 1000000;
 

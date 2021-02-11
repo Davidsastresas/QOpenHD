@@ -9,6 +9,7 @@
 
 #include "ADSBVehicleManager.h"
 #include "localmessage.h"
+#include "openhd.h"
 
 #include <QDebug>
 
@@ -198,57 +199,59 @@ void ADSBInternet::processReply(QNetworkReply *reply) {
     }
 
     QJsonValue value = jsonObject.value("states");
-        QJsonArray array = value.toArray();
+    QJsonArray array = value.toArray();
 
-        // qDebug() << "MYARRAY COUNT=" << array.count();
+    // qDebug() << "MYARRAY COUNT=" << array.count();
 
-        foreach (const QJsonValue & v, array){
-            QJsonArray innerarray = v.toArray();
+    foreach (const QJsonValue & v, array){
 
-            QString icaoAux = innerarray[0].toString();
-            icaoAddress = icaoAux.toUInt(&icaoOk, 16);
+        QJsonArray innerarray = v.toArray();
+        QString icaoAux = innerarray[0].toString();
+        icaoAddress = icaoAux.toUInt(&icaoOk, 16);
 
-            // skip this element if icao number is not all right
-            if (!icaoOk) {
-                continue;
-            }
-
-            callsign=innerarray[1].toString();
-            if (callsign.length() == 0) {
-                callsign = "N/A";
-            }
-            contact=innerarray[4].toInt();
-            lat=innerarray[6].toDouble();
-            lon=innerarray[5].toDouble();
-            alt=innerarray[7].toDouble();
-            velocity=innerarray[9].toDouble();
-            track=innerarray[10].toDouble();
-            vertical=innerarray[11].toDouble();
-
-            // qDebug() << "icao=" << innerarray[0].toString();
-            // qDebug() << "icaoNum=" << icaoAddress;
-            // qDebug() << "callsign=" << innerarray[1].toString();
-            // qDebug() << "last_contact=" << innerarray[4].toInt();
-            // qDebug() << "lat=" << innerarray[6].toDouble();
-            // qDebug() << "lon=" << innerarray[5].toDouble();
-            // qDebug() << "alt=" << innerarray[7].toDouble();
-            // qDebug() << "velocity=" << innerarray[9].toDouble();
-            // qDebug() << "track=" << innerarray[10].toDouble();
-            // qDebug() << "vertical=" << innerarray[11].toDouble();
-            // qDebug() << "distance=" << distance;
-            // qDebug() << "----------------------------------------------------------";
-
-            QGeoCoordinate location(lat, lon);
-
-            ADSBVehicle::VehicleInfo_t adsbInfo;
-            adsbInfo.icaoAddress = icaoAddress;
-            adsbInfo.callsign = callsign;
-            adsbInfo.location = location;
-            adsbInfo.altitude = alt;
-            adsbInfo.velocity = velocity;
-            adsbInfo.heading = track;
-            adsbInfo.availableFlags = ADSBVehicle::CallsignAvailable | ADSBVehicle::LocationAvailable | ADSBVehicle::AltitudeAvailable | ADSBVehicle::HeadingAvailable | ADSBVehicle::VelocityAvailable;
-            emit adsbVehicleUpdate(adsbInfo);
+        // skip this element if icao number is not all right
+        if (!icaoOk) {
+            continue;
         }
+
+        callsign=innerarray[1].toString();
+        
+        if (callsign.length() == 0) {
+            callsign = "N/A";
+        }
+        
+        contact=innerarray[4].toInt();
+        lat=innerarray[6].toDouble();
+        lon=innerarray[5].toDouble();
+        alt=innerarray[7].toDouble();
+        velocity=innerarray[9].toDouble();
+        track=innerarray[10].toDouble();
+        vertical=innerarray[11].toDouble();
+
+        // qDebug() << "icao=" << innerarray[0].toString();
+        // qDebug() << "icaoNum=" << icaoAddress;
+        // qDebug() << "callsign=" << innerarray[1].toString();
+        // qDebug() << "last_contact=" << innerarray[4].toInt();
+        // qDebug() << "lat=" << innerarray[6].toDouble();
+        // qDebug() << "lon=" << innerarray[5].toDouble();
+        // qDebug() << "alt=" << innerarray[7].toDouble();
+        // qDebug() << "velocity=" << innerarray[9].toDouble();
+        // qDebug() << "track=" << innerarray[10].toDouble();
+        // qDebug() << "vertical=" << innerarray[11].toDouble();
+        // qDebug() << "distance=" << distance;
+        // qDebug() << "----------------------------------------------------------";
+
+        ADSBVehicle::VehicleInfo_t adsbInfo;
+        QGeoCoordinate location(lat, lon);
+
+        adsbInfo.icaoAddress = icaoAddress;
+        adsbInfo.callsign = callsign;
+        adsbInfo.location = location;
+        adsbInfo.altitude = alt;
+        adsbInfo.velocity = velocity;
+        adsbInfo.heading = track;
+        adsbInfo.availableFlags = ADSBVehicle::CallsignAvailable | ADSBVehicle::LocationAvailable | ADSBVehicle::AltitudeAvailable | ADSBVehicle::HeadingAvailable | ADSBVehicle::VelocityAvailable;
+        emit adsbVehicleUpdate(adsbInfo);
+    }
     reply->deleteLater();
 }

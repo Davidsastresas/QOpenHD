@@ -38,11 +38,11 @@ protected:
 public slots:
     void mapBoundsChanged(QGeoCoordinate center_coord);
 
-private slots:
-    void processReply(QNetworkReply *reply);
-    void requestData();
+protected slots:
+    virtual void processReply(QNetworkReply *reply) = 0;
+    virtual void requestData() = 0;
 
-private:
+protected:
     void init();
 
     // network 
@@ -62,6 +62,18 @@ private:
     QTimer *timer;
 
     QSettings _settings;
+};
+
+class ADSBInternet: public ADSBapi {
+    Q_OBJECT
+
+public:
+    ADSBInternet() {}
+    ~ADSBInternet() {}
+
+private slots:
+    void processReply(QNetworkReply *reply);
+    void requestData();
 };
 
 class ADSBVehicleManager : public QObject {
@@ -98,7 +110,7 @@ private:
     QmlObjectListModel              _adsbVehicles;
     QMap<uint32_t, ADSBVehicle*>    _adsbICAOMap;
     QTimer                          _adsbVehicleCleanupTimer;
-    ADSBapi*                        _apiLink = nullptr;
+    ADSBInternet*                   _internetLink = nullptr;
     QString                         _groundAddress;
     QSettings                       _settings;
     QGeoCoordinate                  _api_center_coord;

@@ -29,8 +29,8 @@ ADSBVehicleManager::ADSBVehicleManager(QObject *parent) : QObject(parent)
 ADSBVehicleManager::~ADSBVehicleManager() 
 {
     // manually stop the threads
-    _apiLink->quit();
-    _apiLink->wait();
+    _internetLink->quit();
+    _internetLink->wait();
 }
 
 void ADSBVehicleManager::onStarted()
@@ -43,9 +43,9 @@ void ADSBVehicleManager::onStarted()
     _adsbVehicleCleanupTimer.setSingleShot(false);
     _adsbVehicleCleanupTimer.start(1000);
 
-    _apiLink = new ADSBapi();
-    connect(_apiLink, &ADSBapi::adsbVehicleUpdate, this, &ADSBVehicleManager::adsbVehicleUpdate, Qt::QueuedConnection);
-    connect(this, &ADSBVehicleManager::mapCenterChanged, _apiLink, &ADSBapi::mapBoundsChanged, Qt::QueuedConnection);
+    _internetLink = new ADSBInternet();
+    connect(_internetLink, &ADSBInternet::adsbVehicleUpdate, this, &ADSBVehicleManager::adsbVehicleUpdate, Qt::QueuedConnection);
+    connect(this, &ADSBVehicleManager::mapCenterChanged, _internetLink, &ADSBInternet::mapBoundsChanged, Qt::QueuedConnection);
 }
 
 // called from qml when the map is moved
@@ -119,7 +119,27 @@ void ADSBapi::init(void) {
     mapBoundsChanged(QGeoCoordinate(40.48205, -3.35996)); // this shouldn't be necesary
 }
 
-void ADSBapi::requestData(void) {
+// this is duplicated
+void ADSBapi::mapBoundsChanged(QGeoCoordinate center_coord) {
+    // qreal adsb_distance_limit = _settings.value("adsb_distance_limit").toInt();
+    qreal adsb_distance_limit = 1000000;
+
+    center_lat= center_coord.latitude();
+    center_lon= center_coord.longitude();
+
+    QGeoCoordinate qgeo_upper_left;
+    QGeoCoordinate qgeo_lower_right;
+
+    qgeo_upper_left = center_coord.atDistanceAndAzimuth(adsb_distance_limit, 315, 0.0);
+    qgeo_lower_right = center_coord.atDistanceAndAzimuth(adsb_distance_limit, 135, 0.0);
+
+    upperl_lat= QString::number(qgeo_upper_left.latitude());
+    upperl_lon= QString::number(qgeo_upper_left.longitude());
+    lowerr_lat= QString::number(qgeo_lower_right.latitude());
+    lowerr_lon= QString::number(qgeo_lower_right.longitude());
+}
+
+void ADSBInternet::requestData(void) {
     adsb_url= "https://opensky-network.org/api/states/all?lamin="+lowerr_lat+"&lomin="+upperl_lon+"&lamax="+upperl_lat+"&lomax="+lowerr_lon;
 
     QNetworkRequest request;
@@ -131,7 +151,7 @@ void ADSBapi::requestData(void) {
     m_manager->get(request);
 }
 
-void ADSBapi::processReply(QNetworkReply *reply) {
+void ADSBInternet::processReply(QNetworkReply *reply) {
     bool icaoOk;
     uint32_t icaoAddress;
 
@@ -234,24 +254,4 @@ void ADSBapi::processReply(QNetworkReply *reply) {
             emit adsbVehicleUpdate(adsbInfo);
         }
     reply->deleteLater();
-}
-
-// this is duplicated
-void ADSBapi::mapBoundsChanged(QGeoCoordinate center_coord) {
-    // qreal adsb_distance_limit = _settings.value("adsb_distance_limit").toInt();
-    qreal adsb_distance_limit = 1000000;
-
-    center_lat= center_coord.latitude();
-    center_lon= center_coord.longitude();
-
-    QGeoCoordinate qgeo_upper_left;
-    QGeoCoordinate qgeo_lower_right;
-
-    qgeo_upper_left = center_coord.atDistanceAndAzimuth(adsb_distance_limit, 315, 0.0);
-    qgeo_lower_right = center_coord.atDistanceAndAzimuth(adsb_distance_limit, 135, 0.0);
-
-    upperl_lat= QString::number(qgeo_upper_left.latitude());
-    upperl_lon= QString::number(qgeo_upper_left.longitude());
-    lowerr_lat= QString::number(qgeo_lower_right.latitude());
-    lowerr_lon= QString::number(qgeo_lower_right.longitude());
 }

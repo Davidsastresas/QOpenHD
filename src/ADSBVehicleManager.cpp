@@ -72,11 +72,6 @@ void ADSBVehicleManager::_cleanupStaleVehicles()
 // we evaluate traffic here!!
 void ADSBVehicleManager::adsbVehicleUpdate(const ADSBVehicle::VehicleInfo_t vehicleInfo)
 {
-    // Show warnings if adsb reported traffic is too close
-    qreal distance = _calculateKmDistance(vehicleInfo.location);
-    _evaluateTraffic(vehicleInfo.altitude, distance);
-
-    // Now update our list of vehicles
     uint32_t icaoAddress = vehicleInfo.icaoAddress;
 
     if (_adsbICAOMap.contains(icaoAddress)) {
@@ -87,6 +82,12 @@ void ADSBVehicleManager::adsbVehicleUpdate(const ADSBVehicle::VehicleInfo_t vehi
             _adsbICAOMap[icaoAddress] = adsbVehicle;
             _adsbVehicles.append(adsbVehicle);
         }
+    }
+
+    // Show warnings if adsb reported traffic is too close
+    if (vehicleInfo.availableFlags & ADSBVehicle::LocationAvailable) {
+        qreal distance = _calculateKmDistance(vehicleInfo.location);
+        _evaluateTraffic(vehicleInfo.altitude, distance);
     }
 }
 

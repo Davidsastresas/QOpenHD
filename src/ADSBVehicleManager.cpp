@@ -204,9 +204,8 @@ void ADSBInternet::processReply(QNetworkReply *reply) {
         return;
     }
 
-    QByteArray data = reply->readAll();
-
     QJsonParseError errorPtr;
+    QByteArray data = reply->readAll();
     QJsonDocument doc = QJsonDocument::fromJson(data, &errorPtr);
 
     if (doc.isNull()) {
@@ -233,73 +232,52 @@ void ADSBInternet::processReply(QNetworkReply *reply) {
     QJsonValue value = jsonObject.value("states");
     QJsonArray array = value.toArray();
 
-    bool icaoOk;
-    uint32_t icaoAddress;
-
-    QString callsign;
-    int contact;
-    double lat;
-    double lon;
-    int alt;
-    int track;
-    int velocity;
-    double vertical;
-
     foreach (const QJsonValue & v, array){
+
+        ADSBVehicle::VehicleInfo_t adsbInfo;
+        bool icaoOk;
 
         QJsonArray innerarray = v.toArray();
         QString icaoAux = innerarray[0].toString();
-        icaoAddress = icaoAux.toUInt(&icaoOk, 16);
-
+        adsbInfo.icaoAddress = icaoAux.toUInt(&icaoOk, 16);
+        
         // Skip this element if icao number is not ok
         if (!icaoOk) {
             continue;
         }
 
-        callsign = innerarray[1].toString();
-        contact = innerarray[4].toInt();
-        lat = innerarray[6].toDouble();
-        lon = innerarray[5].toDouble();
-        alt = innerarray[7].toDouble();
-        velocity = innerarray[9].toDouble();
-        track = innerarray[10].toDouble();
-        vertical = innerarray[11].toDouble();
+        // ------------ TODO
+        double vertical;
+        int contact;
+        contact = innerarray[4].toInt(); // need to implement in vehicle
+        vertical = innerarray[11].toDouble(); // need to implement in vehicle
+        // -----------------
 
-        // qDebug() << "icao = " << innerarray[0].toString();
-        // qDebug() << "icaoNum = " << icaoAddress;
-        // qDebug() << "callsign = " << innerarray[1].toString();
-        // qDebug() << "last_contact = " << innerarray[4].toInt();
-        // qDebug() << "lat = " << innerarray[6].toDouble();
-        // qDebug() << "lon = " << innerarray[5].toDouble();
-        // qDebug() << "alt = " << innerarray[7].toDouble();
-        // qDebug() << "velocity = " << innerarray[9].toDouble();
-        // qDebug() << "track = " << innerarray[10].toDouble();
-        // qDebug() << "vertical = " << innerarray[11].toDouble();
-        // qDebug() << "distance = " << distance;
-        // qDebug() << "----------------------------------------------------------";
+        // calsign
+        adsbInfo.callsign = innerarray[1].toString();
 
-        ADSBVehicle::VehicleInfo_t adsbInfo;
-        QGeoCoordinate location(lat, lon);
-
-        // Check if our callsign is ok
-        if (callsign.length() == 0) {
-            callsign = "N/A";
+        if (adsbInfo.callsign.length() == 0) {
+            adsbInfo.callsign = "N/A";
         } else {
             adsbInfo.availableFlags |= ADSBVehicle::CallsignAvailable;
         }
 
-        // Check if our location is ok
-        if (lat && lon) {
-            adsbInfo.availableFlags |= ADSBVehicle::LocationAvailable;    
-        }
-        
-        adsbInfo.icaoAddress = icaoAddress;
-        adsbInfo.callsign = callsign;
+        // location comes in lat lon format, but we need it as QGeoCoordinate
+        double lat = innerarray[6].toDouble();
+        double lon = innerarray[5].toDouble();
+        QGeoCoordinate location(lat, lon);
         adsbInfo.location = location;
-        adsbInfo.altitude = alt;
-        adsbInfo.velocity = velocity;
-        adsbInfo.heading = track;
 
+        // this flag is present because mavlink sends it from onboard ADSB
+        // we should somehow check if the location makes sense
+        adsbInfo.availableFlags |= ADSBVehicle::LocationAvailable;  
+
+        // rest of fields
+        adsbInfo.altitude = innerarray[7].toDouble();
+        adsbInfo.velocity = innerarray[9].toDouble();
+        adsbInfo.heading = innerarray[10].toDouble();
+
+        // this is received on adsbvehicleupdate slot
         emit adsbVehicleUpdate(adsbInfo);
     }
     reply->deleteLater();

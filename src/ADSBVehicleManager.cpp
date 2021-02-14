@@ -195,17 +195,6 @@ void ADSBInternet::requestData(void) {
 }
 
 void ADSBInternet::processReply(QNetworkReply *reply) {
-    bool icaoOk;
-    uint32_t icaoAddress;
-
-    QString callsign;
-    int contact;
-    double lat;
-    double lon;
-    int alt;
-    int track;
-    int velocity;
-    double vertical;
 
     if (reply->error()) {
         qDebug() << "ADSB request error!";
@@ -221,14 +210,12 @@ void ADSBInternet::processReply(QNetworkReply *reply) {
     QJsonDocument doc = QJsonDocument::fromJson(data, &errorPtr);
 
     if (doc.isNull()) {
-        qDebug() << "Parse failed";
-    }
-
-    if(doc.isNull()){
-        qDebug()<<"Failed to create JSON doc.";
+        qDebug() << "ADSB Openskynetwork response: Parse failed";
+        LocalMessage::instance()->showMessage("ADSB Parse Error", 4);
         reply->deleteLater();
         return;
     }
+
     if(!doc.isObject()){
         qDebug()<<"JSON is not an object.";
         reply->deleteLater();
@@ -238,7 +225,7 @@ void ADSBInternet::processReply(QNetworkReply *reply) {
     QJsonObject jsonObject = doc.object();
 
     if(jsonObject.isEmpty()){
-        qDebug()<<"JSON object is empty.";
+        qDebug()<<"ADSB Openskynetwork response: JSON object is empty.";
         reply->deleteLater();
         return;
     }
@@ -246,7 +233,17 @@ void ADSBInternet::processReply(QNetworkReply *reply) {
     QJsonValue value = jsonObject.value("states");
     QJsonArray array = value.toArray();
 
-    // qDebug() << "MYARRAY COUNT=" << array.count();
+    bool icaoOk;
+    uint32_t icaoAddress;
+
+    QString callsign;
+    int contact;
+    double lat;
+    double lon;
+    int alt;
+    int track;
+    int velocity;
+    double vertical;
 
     foreach (const QJsonValue & v, array){
 
@@ -254,48 +251,55 @@ void ADSBInternet::processReply(QNetworkReply *reply) {
         QString icaoAux = innerarray[0].toString();
         icaoAddress = icaoAux.toUInt(&icaoOk, 16);
 
-        // skip this element if icao number is not all right
+        // Skip this element if icao number is not ok
         if (!icaoOk) {
             continue;
         }
 
-        callsign=innerarray[1].toString();
-        
-        if (callsign.length() == 0) {
-            callsign = "N/A";
-        }
-        
-        contact=innerarray[4].toInt();
-        lat=innerarray[6].toDouble();
-        lon=innerarray[5].toDouble();
-        alt=innerarray[7].toDouble();
-        velocity=innerarray[9].toDouble();
-        track=innerarray[10].toDouble();
-        vertical=innerarray[11].toDouble();
+        callsign = innerarray[1].toString();
+        contact = innerarray[4].toInt();
+        lat = innerarray[6].toDouble();
+        lon = innerarray[5].toDouble();
+        alt = innerarray[7].toDouble();
+        velocity = innerarray[9].toDouble();
+        track = innerarray[10].toDouble();
+        vertical = innerarray[11].toDouble();
 
-        // qDebug() << "icao=" << innerarray[0].toString();
-        // qDebug() << "icaoNum=" << icaoAddress;
-        // qDebug() << "callsign=" << innerarray[1].toString();
-        // qDebug() << "last_contact=" << innerarray[4].toInt();
-        // qDebug() << "lat=" << innerarray[6].toDouble();
-        // qDebug() << "lon=" << innerarray[5].toDouble();
-        // qDebug() << "alt=" << innerarray[7].toDouble();
-        // qDebug() << "velocity=" << innerarray[9].toDouble();
-        // qDebug() << "track=" << innerarray[10].toDouble();
-        // qDebug() << "vertical=" << innerarray[11].toDouble();
-        // qDebug() << "distance=" << distance;
+        // qDebug() << "icao = " << innerarray[0].toString();
+        // qDebug() << "icaoNum = " << icaoAddress;
+        // qDebug() << "callsign = " << innerarray[1].toString();
+        // qDebug() << "last_contact = " << innerarray[4].toInt();
+        // qDebug() << "lat = " << innerarray[6].toDouble();
+        // qDebug() << "lon = " << innerarray[5].toDouble();
+        // qDebug() << "alt = " << innerarray[7].toDouble();
+        // qDebug() << "velocity = " << innerarray[9].toDouble();
+        // qDebug() << "track = " << innerarray[10].toDouble();
+        // qDebug() << "vertical = " << innerarray[11].toDouble();
+        // qDebug() << "distance = " << distance;
         // qDebug() << "----------------------------------------------------------";
 
         ADSBVehicle::VehicleInfo_t adsbInfo;
         QGeoCoordinate location(lat, lon);
 
+        // Check if our callsign is ok
+        if (callsign.length() == 0) {
+            callsign = "N/A";
+        } else {
+            adsbInfo.availableFlags |= ADSBVehicle::CallsignAvailable;
+        }
+
+        // Check if our location is ok
+        if (lat && lon) {
+            adsbInfo.availableFlags |= ADSBVehicle::LocationAvailable;    
+        }
+        
         adsbInfo.icaoAddress = icaoAddress;
         adsbInfo.callsign = callsign;
         adsbInfo.location = location;
         adsbInfo.altitude = alt;
         adsbInfo.velocity = velocity;
         adsbInfo.heading = track;
-        adsbInfo.availableFlags = ADSBVehicle::CallsignAvailable | ADSBVehicle::LocationAvailable | ADSBVehicle::AltitudeAvailable | ADSBVehicle::HeadingAvailable | ADSBVehicle::VelocityAvailable;
+
         emit adsbVehicleUpdate(adsbInfo);
     }
     reply->deleteLater();

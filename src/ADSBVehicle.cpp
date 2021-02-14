@@ -64,6 +64,18 @@ void ADSBVehicle::update(const VehicleInfo_t& vehicleInfo)
             emit velocityChanged();
         }
     }
+    if (vehicleInfo.availableFlags & VerticalVelAvailable) {
+        if (vehicleInfo.verticalVel != _verticalVel) {
+            _verticalVel = vehicleInfo.verticalVel;
+            emit verticalVelChanged();
+        }
+    }
+    if (vehicleInfo.availableFlags & LastContactAvailable) {
+        if (vehicleInfo.lastContact != _lastContact) {
+            _lastContact = vehicleInfo.lastContact;
+            emit lastContactChanged();
+        }
+    }
     _lastUpdateTimer.restart();
 }
 

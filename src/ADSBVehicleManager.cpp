@@ -246,13 +246,6 @@ void ADSBInternet::processReply(QNetworkReply *reply) {
             continue;
         }
 
-        // ------------ TODO
-        double vertical;
-        int contact;
-        contact = innerarray[4].toInt(); // need to implement in vehicle
-        vertical = innerarray[11].toDouble(); // need to implement in vehicle
-        // -----------------
-
         // calsign
         adsbInfo.callsign = innerarray[1].toString();
 
@@ -267,15 +260,19 @@ void ADSBInternet::processReply(QNetworkReply *reply) {
         double lon = innerarray[5].toDouble();
         QGeoCoordinate location(lat, lon);
         adsbInfo.location = location;
-
-        // this flag is present because mavlink sends it from onboard ADSB
-        // we should somehow check if the location makes sense
         adsbInfo.availableFlags |= ADSBVehicle::LocationAvailable;  
 
         // rest of fields
         adsbInfo.altitude = innerarray[7].toDouble();
+        adsbInfo.availableFlags |= ADSBVehicle::AltitudeAvailable;
         adsbInfo.velocity = innerarray[9].toDouble();
+        adsbInfo.availableFlags |= ADSBVehicle::VelocityAvailable;
         adsbInfo.heading = innerarray[10].toDouble();
+        adsbInfo.availableFlags |= ADSBVehicle::HeadingAvailable;
+        adsbInfo.lastContact = innerarray[4].toInt();
+        adsbInfo.availableFlags |= ADSBVehicle::LastContactAvailable;
+        adsbInfo.verticalVel = innerarray[11].toDouble();
+        adsbInfo.availableFlags |= ADSBVehicle::VerticalVelAvailable;
 
         // this is received on adsbvehicleupdate slot
         emit adsbVehicleUpdate(adsbInfo);

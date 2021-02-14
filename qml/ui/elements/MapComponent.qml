@@ -379,11 +379,11 @@ Map {
                                         background.opacity = 0.5;
                                     }
 
-                                    if (object.altitude === undefined || model.vertical === undefined) {
+                                    if (object.altitude === undefined || object.verticalVel === undefined) {
                                         //console.log("qml: model alt or vertical undefined")
                                         return "---";
                                     } else {
-                                        if(model.vertical > .2){ //climbing
+                                        if(object.verticalVel > .2){ //climbing
                                             if (settings.enable_imperial === false){
                                                 return Math.floor(object.altitude - OpenHD.alt_msl) + "m " + "\ue696"
                                             }
@@ -391,7 +391,7 @@ Map {
                                                 return Math.floor((object.altitude - OpenHD.alt_msl) * 3.28084) + "Ft " + "\ue696"
                                             }
                                         }
-                                        else if (model.vertical < -.2){//descending
+                                        else if (object.verticalVel < -.2){//descending
                                             if (settings.enable_imperial === false){
                                                 return Math.floor(object.altitude - OpenHD.alt_msl) + "m " + "\ue697"
                                             }

@@ -24,7 +24,9 @@ public:
         AltitudeAvailable =     1 << 3,
         HeadingAvailable =      1 << 4,
         AlertAvailable =        1 << 5,
-        VelocityAvailable =     1 << 6
+        VelocityAvailable =     1 << 6,
+        VerticalVelAvailable =  1 << 7,
+        LastContactAvailable =  1 << 8
     };
 
     typedef struct {
@@ -36,6 +38,8 @@ public:
         double          heading;
         bool            alert;
         uint32_t        availableFlags;
+        int             lastContact;
+        double          verticalVel;
     } VehicleInfo_t;
 
     ADSBVehicle(const VehicleInfo_t& vehicleInfo, QObject* parent);
@@ -49,6 +53,8 @@ public:
     Q_PROPERTY(double           velocity    READ velocity       NOTIFY velocityChanged)     // NaN for not available
     Q_PROPERTY(double           heading     READ heading        NOTIFY headingChanged)      // NaN for not available
     Q_PROPERTY(bool             alert       READ alert          NOTIFY alertChanged)        // Collision path
+    Q_PROPERTY(int              lastContact READ lastContact    NOTIFY lastContactChanged)
+    Q_PROPERTY(double           verticalVel READ verticalVel    NOTIFY verticalVelChanged)
 
     int             icaoAddress (void) const { return static_cast<int>(_icaoAddress); }
     QString         callsign    (void) const { return _callsign; }
@@ -59,6 +65,8 @@ public:
     double          velocity    (void) const { return _velocity; }
     double          heading     (void) const { return _heading; }
     bool            alert       (void) const { return _alert; }
+    int             lastContact (void) const { return _lastContact; }
+    double          verticalVel (void) const { return _verticalVel; }
 
     void update(const VehicleInfo_t& vehicleInfo);
 
@@ -72,12 +80,11 @@ signals:
     void velocityChanged    ();
     void headingChanged     ();
     void alertChanged       ();
+    void lastContactChanged ();
+    void verticalVelChanged ();
 
 private:
-    /* According with Thomas Voß, we should be using 2 minutes for the time being
-    static constexpr qint64 expirationTimeoutMs = 5000; ///< timeout with no update in ms after which the vehicle is removed.
-                                                        ///< AirMap sends updates for each vehicle every second.
-    */
+    // This is the time in ms our vehicle will expire and thus removed from map
     static constexpr qint64 expirationTimeoutMs = 120000;
 
     uint32_t        _icaoAddress;
@@ -87,6 +94,8 @@ private:
     double          _velocity;
     double          _heading;
     bool            _alert;
+    int             _lastContact;
+    double          _verticalVel;
 
     QElapsedTimer   _lastUpdateTimer;
 };

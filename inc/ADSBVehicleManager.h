@@ -68,12 +68,12 @@ class ADSBInternet: public ADSBapi {
     Q_OBJECT
 
 public:
-    ADSBInternet() { timer_interval = 1000; }
+    ADSBInternet() { timer_interval = 10000; }
     ~ADSBInternet() {}
 
 private slots:
-    void processReply(QNetworkReply *reply);
-    void requestData();
+    void processReply(QNetworkReply *reply) override;
+    void requestData() override;
 };
 
 class ADSBVehicleManager : public QObject {

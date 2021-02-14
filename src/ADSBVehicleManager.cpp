@@ -69,8 +69,14 @@ void ADSBVehicleManager::_cleanupStaleVehicles()
     }
 }
 
+// we evaluate traffic here!!
 void ADSBVehicleManager::adsbVehicleUpdate(const ADSBVehicle::VehicleInfo_t vehicleInfo)
 {
+    // Show warnings if adsb reported traffic is too close
+    qreal distance = _calculateKmDistance(vehicleInfo.location);
+    _evaluateTraffic(vehicleInfo.altitude, distance);
+
+    // Now update our list of vehicles
     uint32_t icaoAddress = vehicleInfo.icaoAddress;
 
     if (_adsbICAOMap.contains(icaoAddress)) {
@@ -82,6 +88,45 @@ void ADSBVehicleManager::adsbVehicleUpdate(const ADSBVehicle::VehicleInfo_t vehi
             _adsbVehicles.append(adsbVehicle);
         }
     }
+}
+
+void ADSBVehicleManager::_evaluateTraffic(double traffic_alt, int traffic_distance) 
+{
+    /*
+     * Centralise traffic threat detection here. Once threat is detected it should be
+     * labled and then sent over to the adsb widget
+     *
+     *  need to calculate azimuth and bearing of any threats so that it can be shared
+     *  and depicted in the adsb widget
+     */
+    int drone_alt = OpenHD::instance()->get_msl_alt();
+
+    if (traffic_alt - drone_alt < 300 && traffic_distance < 2) {
+        LocalMessage::instance()->showMessage("Aircraft Traffic", 3);
+
+    } else if (traffic_alt - drone_alt < 500 && traffic_distance < 5) {
+        LocalMessage::instance()->showMessage("Aircraft Traffic", 4);
+    }
+}
+
+int ADSBVehicleManager::_calculateKmDistance(QGeoCoordinate coord)
+{
+    double lat_1 = OpenHD::instance()->get_lat(); 
+    double lon_1 = OpenHD::instance()->get_lon();
+    double lat_2 = coord.latitude();
+    double lon_2 = coord.longitude();
+
+    double latDistance = qDegreesToRadians(lat_1 - lat_2);
+    double lngDistance = qDegreesToRadians(lon_1 - lon_2);
+
+    double a = qSin(latDistance / 2) * qSin(latDistance / 2)
+            + qCos(qDegreesToRadians(_api_center_coord.latitude())) * qCos(qDegreesToRadians(lat_2))
+            * qSin(lngDistance / 2) * qSin(lngDistance / 2);
+
+    double c = 2 * qAtan2(qSqrt(a), qSqrt(1 - a));
+    int distance = radius_earth_km * c;
+
+    return distance;
 }
 
 ADSBapi::ADSBapi()

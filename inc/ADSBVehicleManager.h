@@ -107,6 +107,11 @@ private slots:
     void _cleanupStaleVehicles(void);
 
 private:
+    void _evaluateTraffic(double traffic_alt, int traffic_distance);
+    int  _calculateKmDistance(QGeoCoordinate coord);
+
+    double radius_earth_km = 6371; // For _calculateKmDistance
+
     QmlObjectListModel              _adsbVehicles;
     QMap<uint32_t, ADSBVehicle*>    _adsbICAOMap;
     QTimer                          _adsbVehicleCleanupTimer;
